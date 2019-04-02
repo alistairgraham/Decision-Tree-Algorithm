@@ -66,7 +66,7 @@ def buildTree(instances, attributes):
     
     trueList = []
     falseList = []
-    bestImpurity = 0.5
+    bestImpurity = 1
     bestAttributeIndex = 0
     
     #Finding purist attribute
@@ -111,8 +111,6 @@ def classifyCategory(instance, trueList, falseList):
         raise ValueError
 
 def computeImpurity(trueList, falseList):
-    print()
-    print("..........")
     truePureCount = 0
     trueImpureCount = 0
     impurityTrue = 1
