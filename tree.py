@@ -7,8 +7,10 @@ Created on Mon Apr  1 18:34:53 2019
 
 class Node:
     
-    def __init__(self):
-        return
+    
+    def __init__(self, classification, probability):
+        self.classification = classification
+        self.probability = probability
         
 
 class Instance:
