@@ -11,6 +11,7 @@ import sys
 import math
 
 from tree import Node
+from tree import LeafNode
 from tree import Instance
 
 # Fields
@@ -49,7 +50,22 @@ def loadInstances(file, instancesList):
 def buildTree(instances, attributes):
     # if instances list is empty
     if not instances:
-        raise ValueError
+        yes = []
+        no = []
+        for instance in instances:
+            if instance.attributeList[0] == categories[1]:
+                yes.append(instance)
+            elif instance.attributeList[0] == categories[1]:
+                no.append(instance)
+            else:
+                raise ValueError
+        
+        if len(yes) > len(no):
+            return LeafNode(yes[0].attributeList[0], len(yes)/len(instances))
+        else:
+            return LeafNode(no[0].attributeList[0], len(no)/len(instances))
+                
+                
     # if instances are pure, return a leaf node
     trueList = []
     falseList = []
@@ -59,10 +75,11 @@ def buildTree(instances, attributes):
     if not (trueList and falseList):
         #print(instance.attributeList[0])
         #print(trueList)
-        return Node(instance.attributeList[0], 1)
+        return LeafNode(instance.attributeList[0], 1)
             
     # if attributes are empty, return a leaf node
-    
+    if not attributes:
+        return LeafNode(categories[0], 1)
     
     trueList = []
     falseList = []
@@ -70,6 +87,7 @@ def buildTree(instances, attributes):
     bestAttributeIndex = 0
     
     #Finding purist attribute
+    # i + 1 because instance.attributeList includes class at start
     for i in range(1, len(attributes)+1):
         tempTrueList = []
         tempFalseList = []
@@ -90,14 +108,15 @@ def buildTree(instances, attributes):
             bestImpurity = impurity
             trueList = tempTrueList
             falseList = tempFalseList
-            bestAttributeIndex = i
+            bestAttributeIndex = i-1
                 
+    print(attributes[bestAttributeIndex])
     # Build subtrees
     unusedAttributes = attributes[0:bestAttributeIndex] + attributes[bestAttributeIndex:len(attributes)]
-    #left = buildTree(trueList, unusedAttributes)
-    #right = buildTree(falseList, unusedAttributes)
+    left = buildTree(trueList, unusedAttributes)
+    right = buildTree(falseList, unusedAttributes)
 
-    #return Node(attributes[bestAttributeIndex], left, right)
+    return Node(attributes[bestAttributeIndex], left, right)
     
 def classifyCategory(instance, trueList, falseList):
     if not isinstance(instance, Instance):
@@ -144,17 +163,6 @@ def computeImpurity(trueList, falseList):
     # todo: needs to be weighted bro
     impurity = (impurityTrue+impurityFalse)/2
     return impurity
-
-def fuck():
-    #print(str(m) + " " + str(n))
-    impurity = float((float(m)*float(n))/float((math.pow(m+n,2))))
-    # standardise it - it could be close to 1 or close to 0
-    if impurity > 0.5:
-     #   print(impurity)
-        impurity = abs(1 - impurity)
-      #  print(impurity)
-       # print()
-    return impurity
     
 def classifyTestInstances():
     return
@@ -162,29 +170,14 @@ def classifyTestInstances():
 
 def main():
     readFiles(sys.argv[1], sys.argv[2])
+    print(attributes)
     rootNode = buildTree(trainingInstances, attributes)
-    classifyTestInstances()    
+    classifyTestInstances()
+    print(rootNode.attributeIndex)
+    print(rootNode.left)
+    print(rootNode.right)
 
 main()
-
-
-0.0
-0.0
-0.0
-0.1875
-0.16
-0.0
-0.25
-0.2222222222222222
-0.0
-0.25
-0.0
-0.0
-0.0
-0.0
-0.25
-0.0
-0.25
 
 
 
