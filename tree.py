@@ -7,16 +7,30 @@ Created on Mon Apr  1 18:34:53 2019
 
 class Node:
     
-    def __init__(self, attributeIndex, left, right):
-        self.attributeIndex = attributeIndex
-        self.left = left
-        self.right = right
+    def __init__(self, attribute, left, right):
+        self._attribute = attribute
+        self._left = left
+        self._right = right
+        
+    def report(self, indent):
+        print(indent + self._attribute + " = True:")
+        self._left.report(indent+"    ");
+        print(indent + self._attribute + " = False:")
+        self._right.report(indent+"    ");
+        
+    @property
+    def getAttribute(self):
+        return self._attribute
+        
         
 class LeafNode:
     
     def __init__(self, classification, probability):
-        self.classification = classification
-        self.probability = probability
+        self._classification = classification
+        self._probability = probability
+        
+    def report(self, indent):
+        print(str(indent) + "Class " + str(self._classification) + ", prob = " + "{0:.2f}".format(self._probability))
 
 class Instance:
     
