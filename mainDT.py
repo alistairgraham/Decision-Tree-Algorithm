@@ -25,6 +25,7 @@ global baselineProbability
 
 
 def readFiles(trainingFileName, testFileName):
+    
     with open(trainingFileName) as trainingFile:
         # get categories
         line = trainingFile.readline()
@@ -35,11 +36,11 @@ def readFiles(trainingFileName, testFileName):
         for word in line.split():
             attributes.append(word)
         loadInstances(trainingFile, trainingInstances)
+        
     with open(testFileName) as testFile:
         # skip headers
         testFile.readline()
         testFile.readline()
-        print(testFileName)
         loadInstances(testFile, testInstances)
 
 def loadInstances(file, instancesList):
@@ -51,9 +52,6 @@ def loadInstances(file, instancesList):
 def buildTree(instances, currentAttributes):
     # if instances list is empty
     if not instances:
-        yes = []
-        no = []
-        classifyTraining(yes, no)
         return LeafNode(baseline, baselineProbability)
                 
                 
@@ -75,27 +73,27 @@ def buildTree(instances, currentAttributes):
         else:
             randomInt = randint(0,1)
             if (randomInt == 0):
-                return LeafNode(categories[0], (len(trueList)/len(falseList)))
+                return LeafNode(categories[0], (len(trueList)/len(instances)))
             else:
-                return LeafNode(categories[1], (len(falseList)/len(trueList)))
+                return LeafNode(categories[1], (len(falseList)/len(instances)))
     
     trueList = []
     falseList = []
     bestImpurity = 1.1
     bestAttributeIndex = 0
-    
     #Finding purist attribute
     # i + 1 because instance.attributeList includes class at start
-    for i in range(1, len(currentAttributes)+1):
+    for i, attribute in enumerate(currentAttributes):
         tempTrueList = []
         tempFalseList = []
+        index = attributes.index(attribute)
         for instance in instances:
             # add the instance to true or false for the attribute
             if not isinstance(instance, Instance):
                 raise TypeError
-            if instance.attributeList[i] == "true":
+            if instance.attributeList[index+1] == "true":
                 tempTrueList.append(instance)
-            elif instance.attributeList[i] == "false":
+            elif instance.attributeList[index+1] == "false":
                 tempFalseList.append(instance)
             else:
                 raise ValueError
@@ -105,11 +103,10 @@ def buildTree(instances, currentAttributes):
             bestImpurity = impurity
             trueList = tempTrueList
             falseList = tempFalseList
-            bestAttributeIndex = i-1
+            bestAttributeIndex = i
     
     # Build subtrees
     unusedAttributes = currentAttributes[0:bestAttributeIndex] + currentAttributes[bestAttributeIndex+1:len(currentAttributes)]
-    print(currentAttributes[bestAttributeIndex])
     left = buildTree(trueList, unusedAttributes)
     right = buildTree(falseList, unusedAttributes)
 
@@ -127,8 +124,6 @@ def classifyCategory(instance, trueList, falseList):
         raise ValueError
 
 def computeImpurity(trueList, falseList):
-    """truePureCount = 0
-    trueImpureCount = 0"""
     
     numOfInstances = len(trueList) + len(falseList)
     impurityTrue = calculateImpurity(trueList) * (len(trueList) / numOfInstances)
@@ -136,85 +131,44 @@ def computeImpurity(trueList, falseList):
     return impurityTrue + impurityFalse
 
 # calculate impurity of given instances
-def calculateImpurity(instances):
+def calculateImpurity(branchInstances):
     
     outcome1 = 0
     outcome2 = 0
     
-    for instance in instances:
+    for instance in branchInstances:
         if instance.attributeList[0] == categories[0]:
             outcome1 += 1
         elif instance.attributeList[0] == categories[1]:
             outcome2 += 1
         else:
             raise ValueError
-    if len(instances) == 0:
+    if len(branchInstances) == 0:
         return 0
-    return ((outcome1/len(instances)) * (outcome2/len(instances)))
-
-"""
-    
-    
-    for instance in trueList:
-        if not isinstance(instance, Instance):
-            raise TypeError
-        if instance.attributeList[0] == categories[0]:
-            truePureCount += 1
-        elif instance.attributeList[0] == categories[1]:
-            trueImpureCount += 1
-        else:
-            raise ValueError
-    
-    if len(trueList) == 0:
-        print("empty trueList")
-        impurityTrue = 0
-    else : 
-        impurityTrue = (truePureCount*trueImpureCount)/(math.pow((truePureCount+trueImpureCount), 2))
-        
-    " ((len(trueList)/(len(trueList)+len(falseList)))*"
-    truePureCount = 0
-    
-    trueImpureCount = 0
-    
-    for instance in falseList:
-        if not isinstance(instance, Instance):
-            raise TypeError
-        if instance.attributeList[0] == categories[0]:
-            truePureCount += 1
-        elif instance.attributeList[0] == categories[1]:
-            trueImpureCount += 1
-        else:
-            raise ValueError
-        
-        if len(falseList) == 0:
-            print("empty falseList")
-            impurityFalse = 0
-        else :
-            impurityFalse = (truePureCount*trueImpureCount)/(math.pow((truePureCount+trueImpureCount), 2))
-    ""((len(falseList)/(len(trueList)+len(falseList)))*""
-    
-    # todo: needs to be weighted bro
-    impurity = impurityTrue+impurityFalse #(impurityTrue+impurityFalse)/2
-    return impurity"""
+    return ((outcome1/len(branchInstances)) * (outcome2/len(branchInstances)))
     
 def classifyTestInstances(rootNode):
     correct = []
+    incorrect = []
     for i, instance in enumerate(testInstances):
         classification = classify(instance, i, rootNode)
         if (classification == instance.attributeList[0]):
             correct.append(instance)
-    
+        else:
+            incorrect.append(instance)
+
     print("DT Accuracy = " + str(len(correct)/len(testInstances)*100))
     
-def classify(instance, i, node):
+def classify(instance, instanceIndex, node):
     if isinstance(node, Node):
-        index = attributes.index(node.getAttribute)
-        attributeForTest = testInstances[i].attributeList[index+1]
+        attIndex = attributes.index(node.getAttribute)
+        attributeForTest = testInstances[instanceIndex].attributeList[attIndex+1]
         if attributeForTest == "true":
-            return classify(instance, i, node._left)
+            return classify(instance, instanceIndex, node._left)
         elif attributeForTest == "false":
-            return classify(instance, i, node._right)
+            return classify(instance, instanceIndex, node._right)
         else:
+            print(attributeForTest)
             raise ValueError
             
     elif isinstance(node, LeafNode):
@@ -260,17 +214,20 @@ def classifyUsingBaseline():
             correct.append(instance)
     
     print("Baseline Accuracy = " + str(len(correct)/len(testInstances)*100))
-
+    
+#def classifyTestInstances(rootNode):
+    
+    
+    
+    
 def main():
     readFiles(sys.argv[1], sys.argv[2])
+    print(testInstances[len(testInstances)-1].attributeList)
     print()
     computeBaseline()
+    print(trainingInstances == trainingInstances.copy())
     rootNode = buildTree(trainingInstances.copy(), attributes.copy())
     rootNode.report("")
-    print()
-    print(rootNode.getAttribute)
-    print(rootNode._left.getAttribute)
-    print(rootNode._right.getAttribute)
     classifyTestInstances(rootNode)
     classifyUsingBaseline()
 

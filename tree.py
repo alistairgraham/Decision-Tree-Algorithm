@@ -14,9 +14,9 @@ class Node:
         
     def report(self, indent):
         print(indent + self._attribute + " = True:")
-        self._left.report(indent+"    ");
+        self._left.report(indent+"|   ");
         print(indent + self._attribute + " = False:")
-        self._right.report(indent+"    ");
+        self._right.report(indent+"|   ");
         
     @property
     def getAttribute(self):
@@ -30,7 +30,7 @@ class LeafNode:
         self._probability = probability
         
     def report(self, indent):
-        print(str(indent) + "Class " + str(self._classification) + ", prob = " + "{0:.2f}".format(self._probability))
+        print(str(indent) + "Class: " + str(self._classification) + " /|\ Prob = " + "{0:.2f}".format(self._probability))
 
 class Instance:
     
